@@ -1,0 +1,1 @@
+# SageMaker Canvas Auto Shutdown
