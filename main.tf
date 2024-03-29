@@ -1,12 +1,4 @@
-provider "aws" {
-  region = var.aws_region
-}
-
 data "aws_caller_identity" "current" {}
-
-resource "aws_s3_bucket" "lambda_bucket" {
-  bucket = "terraform-lambda-deployment-bucket-${data.aws_caller_identity.current.account_id}"
-}
 
 data "archive_file" "canvas_auto_shutdown_lambda" {
   type = "zip"
@@ -15,20 +7,10 @@ data "archive_file" "canvas_auto_shutdown_lambda" {
   output_path = "${path.module}/canvas_auto_shutdown.zip"
 }
 
-resource "aws_s3_object" "canvas_auto_shutdown_lambda" {
-  bucket = aws_s3_bucket.lambda_bucket.id
-
-  key    = "canvas_auto_shutdown.zip"
-  source = data.archive_file.canvas_auto_shutdown_lambda.output_path
-}
-
 resource "aws_lambda_function" "canvas_auto_shutdown" {
   function_name = "CanvasAutoShutdown"
 
-  s3_bucket = aws_s3_bucket.lambda_bucket.id
-  s3_key    = aws_s3_object.canvas_auto_shutdown_lambda.key
-
-  runtime = "python3.11"
+  runtime = var.python_runtime
   handler = "canvas_auto_shutdown.lambda_handler"
   
   environment {
@@ -46,7 +28,7 @@ resource "aws_lambda_function" "canvas_auto_shutdown" {
 resource "aws_cloudwatch_log_group" "canvas_auto_shutdown" {
   name = "/aws/lambda/${aws_lambda_function.canvas_auto_shutdown.function_name}"
 
-  retention_in_days = 30
+  retention_in_days = var.cloudwatch_retention_period
 }
 
 resource "aws_iam_role" "canvas_auto_shutdown_lambda_exec" {
@@ -143,4 +125,3 @@ resource "aws_lambda_permission" "allow_event_bridge" {
   principal     = "events.amazonaws.com"
   source_arn    = aws_cloudwatch_event_rule.canvas_auto_shutdown.arn
 }
-
