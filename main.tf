@@ -9,6 +9,7 @@ data "archive_file" "canvas_auto_shutdown_lambda" {
 
 resource "aws_lambda_function" "canvas_auto_shutdown" {
   function_name = "CanvasAutoShutdown"
+  filename      = "canvas_auto_shutdown.zip"
 
   runtime = var.python_runtime
   handler = "canvas_auto_shutdown.lambda_handler"
