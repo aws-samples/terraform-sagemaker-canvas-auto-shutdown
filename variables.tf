@@ -25,7 +25,7 @@ variable "python_runtime" {
 }
 
 variable "cloudwatch_retention_period" {
-  description = "cloudwatch Logs retention period in days."
+  description = "CloudWatch Logs retention period in days."
   type = number
   default = 30
 }
